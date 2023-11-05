@@ -2,6 +2,9 @@ const { generateToken } = require('../config/jwtToken');
 const User = require('../models/userModel');
 const asyncHandler = require('express-async-handler');
 const { validateMongodbId } = require('../utils/validateMongodbId');
+const { generateRefreshToken } = require('../config/refreshToken');
+const jwt=require('jsonwebtoken');
+
 
 
 const createUser = asyncHandler(async (req, res) => {
@@ -20,6 +23,18 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
         const email = req.body.email;
         const findUser = await User.findOne({ email })
         if (findUser && (await findUser.isPasswordMatched(req.body.password))) {
+            const refreshToken=await generateRefreshToken(findUser?._id);
+            const updateUser=await User.findByIdAndUpdate(findUser?._id,
+                {
+                    refreshToken:refreshToken
+                },
+                {
+                    new:true
+                });
+                res.cookie("refreshToken",refreshToken,{
+                    httpOnly:true,
+                    maxAge:72*60*60*1000
+                })
             res.json({
                 _id: findUser?._id,
                 firstname: findUser?.firstname,
@@ -65,6 +80,24 @@ const deleteAuser = asyncHandler(async (req, res) => {
     } catch (error) {
         throw new Error(error)
     }
+});
+const handleRefreshToken=asyncHandler(async(req,res)=>{
+    const cookie=req.cookies;
+    if(!cookie?.refreshToken) throw new Error("No Refresh Token In Cookies")
+
+    const refreshToken=cookie.refreshToken;
+    const user=await User.findOne({refreshToken});
+    if(!user) throw new Error("No Refresh Token Present In Db Or Not Matched");
+    jwt.verify(refreshToken,process.env.JWT_SECRET,(err,decoded)=>{
+        if(err || user.id !== decoded.id)
+        {
+            throw new Error("There Is Somthing Went Wrong"+err);
+        }
+        const accessToken=generateToken(user?._id);
+        res.json({accessToken})
+    })
+
+
 });
 const updtateUser = asyncHandler(async (req, res) => {
     try {
@@ -129,6 +162,7 @@ module.exports = {
     deleteAuser,
     updtateUser,
     blockUser,
-    unblockUser
+    unblockUser,
+    handleRefreshToken
 }
 
