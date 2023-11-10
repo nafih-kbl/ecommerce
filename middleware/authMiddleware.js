@@ -14,7 +14,10 @@ const asyncHandler=require('express-async-handler');
             } catch (error) {
                 throw new Error("Not autherised TOken Expired Please Login Again")
             }
+        }else{
+            throw new Error("Not autherised TOken Expired Please Login Again")
         }
+        
     });
 
     const isAdmin=asyncHandler(async(req,res,next)=>{
