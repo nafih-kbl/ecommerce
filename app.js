@@ -9,6 +9,9 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/authRouter');
 var productRouter = require('./routes/productRouter');
 var blogRouter = require('./routes/blogRouter');
+var prodCategoryRouter = require('./routes/prodCatRouter');
+var blogCategoryRouter = require('./routes/blogCatRoute');
+var brandRouter = require('./routes/brandRouter');
 const bodyParser = require('body-parser');
 
 
@@ -30,6 +33,9 @@ app.use('/', indexRouter);
 app.use('/api/user', usersRouter);
 app.use('/api/product', productRouter);
 app.use('/api/blog', blogRouter);
+app.use('/api/category', prodCategoryRouter);
+app.use('/api/blog-category', blogCategoryRouter);
+app.use('/api/brand', brandRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
