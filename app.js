@@ -13,6 +13,7 @@ var prodCategoryRouter = require('./routes/prodCatRouter');
 var blogCategoryRouter = require('./routes/blogCatRoute');
 var brandRouter = require('./routes/brandRouter');
 var coupenRouter = require('./routes/coupenRouter');
+var addressRouter = require('./routes/addressRouter');
 const bodyParser = require('body-parser');
 
 
@@ -38,6 +39,7 @@ app.use('/api/category', prodCategoryRouter);
 app.use('/api/blog-category', blogCategoryRouter);
 app.use('/api/brand', brandRouter);
 app.use('/api/coupen', coupenRouter);
+app.use('/api/address', addressRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

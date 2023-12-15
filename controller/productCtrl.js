@@ -172,10 +172,14 @@ const uploadImage=asyncHandler(async(req,res)=>{
         const files=req.files;
         const urls=[];
         for(const file of files){
-                const{path}=file
+                const{path,destination,filename}=file
                 const newPath=await uploadImg(path);
                 urls.push(newPath);
-                fs.unlinkSync(path);
+                console.log(path);
+                 fs.unlink(destination+filename, (err) => {
+                    if (err) throw err;
+                    // console.log('successfully deleted file');
+                  });
         }
         const findProduct=await Product.findByIdAndUpdate(id,{
             images:urls.map((file)=> {return file})

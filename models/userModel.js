@@ -47,6 +47,10 @@ var userSchema = new mongoose.Schema({
     wishlists:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Product"
+    }],
+    userAddresses:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Address"
     }]
 
 },{

@@ -1,10 +1,26 @@
 var express = require('express');
 var router = express.Router();
-var {createUser,loginUserCtrl,getAllUser,getSingleUSer,deleteAuser,updtateUser, blockUser, unblockUser,handleRefreshToken,logoutUser,updatePassword,forgetPasswordToken,resetPassword}=require('../controller/userCtrl');
+var {
+    createUser,
+    loginUserCtrl,
+    getAllUser,
+    getSingleUSer,
+    deleteAuser,
+    updtateUser,
+    blockUser,
+    unblockUser,
+    handleRefreshToken,
+    logoutUser,
+    updatePassword,
+    forgetPasswordToken,
+    resetPassword,
+    loginAdmin
+}=require('../controller/userCtrl');
 const { authMiddleware,isAdmin } = require('../middleware/authMiddleware');
 /* GET users listing. */
 router.post('/register',createUser);
 router.post('/login',loginUserCtrl);
+router.post('/admin-login',loginAdmin);
 router.put('/password',authMiddleware,updatePassword);
 router.post('/forget-password',forgetPasswordToken);
 router.put('/resetPassword/:token',resetPassword);

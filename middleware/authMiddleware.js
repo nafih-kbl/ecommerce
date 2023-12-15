@@ -27,6 +27,8 @@ const asyncHandler=require('express-async-handler');
        
         if(adminUser.role =="admin"){
             next();
+        }else{
+            throw new Error("Your Are Not A Admin")
         }
        } catch (error) {
         throw new Error("Your Are Not A Admin")
