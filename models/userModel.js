@@ -43,7 +43,11 @@ var userSchema = new mongoose.Schema({
     },
     passwordChangedAt:{type:Date},
     passwordResetToken:{type:String},
-    passwordResetExpire:{type:Date}
+    passwordResetExpire:{type:Date},
+    wishlists:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Product"
+    }]
 
 },{
     timestamps:true

@@ -1,7 +1,11 @@
 const Product = require('../models/productModel');
 const asyncHandler = require('express-async-handler');
 const { validateMongodbId } = require('../utils/validateMongodbId');
-const slugify=require('slugify')
+const slugify=require('slugify');
+const User = require('../models/userModel');
+const userModel = require('../models/userModel');
+const cloudinaryUploadImg=require('../utils/cloudinaryConfig');
+const fs=require('fs');
 
 
 const createProduct = asyncHandler(async (req, res) => {
@@ -99,4 +103,99 @@ const productFiltering = asyncHandler(async (req, res) => {
         throw new Error(error);
     }
 });
-module.exports={createProduct,getSingleProduct,getAllProduct,updateProduct,deleteProduct,productFiltering}
+
+const addToWishlist=asyncHandler(async(req,res)=>{
+    const {_id}=req.user;
+    const {proId}=req.body;
+    try {
+        const user=await User.findById(_id);
+        const alreadyInWishlist= user.wishlists.find((id)=>id.toString() === proId);
+    if(alreadyInWishlist)
+    {
+        const user=await User.findByIdAndUpdate(_id,{
+            $pull:{wishlists:proId}
+        },{new:true});
+        res.json(user);
+    }else{
+        const user=await User.findByIdAndUpdate(_id.toString(),{
+            $push:{wishlists:proId}
+        },{new:true});
+        res.json(user);
+    }
+    } catch (error) {
+        throw new Error(error)
+    }
+});
+const ratingProduct=asyncHandler(async(req,res)=>{
+    const {_id}=req.user;
+    const {star,proId}=req.body;
+    const product=await Product.findById(proId);
+    const alreadyRated= product.rating.find((userID)=>userID.postedby.toString() === _id.toString());
+    if(alreadyRated){
+        const updateRating=await Product.updateOne({
+            rating:{$elemMatch:alreadyRated}
+        },
+        {
+            $set:{
+                "rating.$.star":star
+            }
+        },{new:true});
+        // res.json(updateRating)
+    }else{
+        const rateProduct=await Product.findByIdAndUpdate(proId,{
+            $push:{
+                rating:{
+                    star:star,
+                    postedby:_id
+                }
+            }   
+        },{new:true});
+        // res.json(rateProduct);
+    }
+
+    const Ratings=await Product.findById(proId);
+    const totalRating=Ratings.rating.length;
+    const starSum=Ratings.rating.map((item)=>item.star).reduce((prev,curr)=>prev+curr,0);
+    const actualRating=Math.round(starSum/totalRating);
+    const finalProduct=await Product.findByIdAndUpdate(proId,{
+        totalRating:actualRating
+    },{new:true});
+    res.json(finalProduct)
+});
+const uploadImage=asyncHandler(async(req,res)=>{
+    console.log(req.files);
+    const {id}=req.params;
+    validateMongodbId(id);
+    try {
+        const uploadImg=(path)=>cloudinaryUploadImg(path,"images");
+
+        const files=req.files;
+        const urls=[];
+        for(const file of files){
+                const{path}=file
+                const newPath=await uploadImg(path);
+                urls.push(newPath);
+                fs.unlinkSync(path);
+        }
+        const findProduct=await Product.findByIdAndUpdate(id,{
+            images:urls.map((file)=> {return file})
+        },{new:true});
+
+        res.json(findProduct);
+
+        
+    } catch (error) {
+        throw new Error(error)
+    }
+})
+module.exports={
+    createProduct,
+    getSingleProduct,
+    getAllProduct,
+    updateProduct,
+    deleteProduct,
+    productFiltering,
+    addToWishlist,
+    ratingProduct,
+    uploadImage
+}
