@@ -7,6 +7,10 @@ const {sendEmail}=require("./emailCtrl")
 const jwt=require('jsonwebtoken');
 const crypto=require('crypto');
 const { json } = require('body-parser');
+const Cart=require('../models/cartModel');
+const Product = require('../models/productModel');
+const Discount=require('../models/coupenModel');
+
 
 
 
@@ -266,7 +270,38 @@ const resetPassword=asyncHandler(async (req,res)=>{
     user.passwordResetExpire=undefined;
     await user.save();
     res.json(user);
-})
+});
+const addToCart=asyncHandler(async(req,res)=>{
+    // res.send("this is from cart")
+    const {_id}=req.user;
+    const {userCart}=req.body;
+    const products=[];
+    let cartTotal=0;
+    try {
+       const cartExist=await Cart.findOne({orderby:_id});
+        if(cartExist){
+
+        }else{
+            for (let i = 0; i < userCart.length; i++) {
+                const cartProducts={};
+                cartProducts.product=userCart[i]._id;
+                cartProducts.count=userCart[i].count;
+                cartProducts.color=userCart[i].color;
+                const productPrice=await Product.findOne({_id:userCart[i]._id}).select('price').exec();
+                cartProducts.price=productPrice.price;
+                products.push(cartProducts);
+            }
+            for(let i=0; i<products.length; i++) {
+                cartTotal += products[i].count * products[i].price;
+            };
+            const newCart= new Cart({products,cartTotal,orderby:_id});
+            await newCart.save();
+            res.json(newCart);
+        }
+    } catch (error) {
+        throw new Error(error);
+    }
+});
 
 
 
@@ -284,6 +319,7 @@ module.exports = {
     updatePassword,
     forgetPasswordToken,
     resetPassword,
-    loginAdmin
+    loginAdmin,
+    addToCart
 }
 

@@ -11,7 +11,7 @@ var cartSchema = new mongoose.Schema({
         color:String,
         price:Number
     }],
-    cartTotal:Number,
+    cartTotal:{type:Number,default:0},
     totalAfterDiscount:Number,
     orderby:{
         type:mongoose.Schema.Types.ObjectId,
