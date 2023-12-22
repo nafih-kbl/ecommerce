@@ -17,7 +17,10 @@ var {
     loginAdmin,
     addToCart,
     veiwUserCart,
-    applyCoupen
+    applyCoupen,
+    createOrder,
+    getOrders,
+    updateOrderStatus
 }=require('../controller/userCtrl');
 const { authMiddleware,isAdmin } = require('../middleware/authMiddleware');
 /* GET users listing. */
@@ -28,6 +31,9 @@ router.put('/password',authMiddleware,updatePassword);
 router.post('/forget-password',forgetPasswordToken);
 router.post('/add-to-cart',authMiddleware,addToCart);
 router.get('/user-cart',authMiddleware,veiwUserCart);
+router.post('/create-order',authMiddleware,isAdmin,createOrder);
+router.get('/view-orders',authMiddleware,getOrders);
+router.put('/update-order-status/:id',authMiddleware,isAdmin,updateOrderStatus);
 router.put('/apply-coupen',authMiddleware,applyCoupen);
 router.put('/resetPassword/:token',resetPassword);
 router.get('/getAllUser',authMiddleware,isAdmin,getAllUser);

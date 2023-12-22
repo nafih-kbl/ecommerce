@@ -10,6 +10,10 @@ const { json } = require('body-parser');
 const Cart=require('../models/cartModel');
 const Product = require('../models/productModel');
 const Discount=require('../models/coupenModel');
+const Address=require('../models/addressModel');
+const Order=require("../models/orederModel");
+var uniqid = require('uniqid'); 
+const productModel = require('../models/productModel');
 
 
 
@@ -323,6 +327,73 @@ const applyCoupen=asyncHandler(async(req,res)=>{
     } catch (error) {
         throw new Error(error);
     }
+});
+const createOrder=asyncHandler(async(req,res)=>{
+    const {_id}=req.user;
+    const {COD,coupenApplied}=req.body;
+    try {
+        if(!COD) throw new Error("inavlid order");
+        var finalAmount=0
+        const userCart=await Cart.findOne({orderby:_id});
+        const userAddress=await Address.findOne({userId:_id});
+        if(COD && coupenApplied)
+        {
+            finalAmount=userCart.totalAfterDiscount;
+        }else{
+            finalAmount=userCart.cartTotal;
+        }
+        const newOrder=await new Order({products:userCart.products,
+            payamentIntent:{
+                id:uniqid(),
+                method:"cash on delivery",
+                amount:finalAmount,
+                status:"order placed",
+                created:Date.now(),
+                currency:"usd"
+
+            },
+            orderStatus:"processing",
+            orderby:_id,
+            address:userAddress._id
+        }).save();
+        const update=userCart.products.map((item)=>{
+             return {
+                updateOne:{
+                filter: {_id:item.product._id},
+                update: { $inc:{ quantity: -item.count,sold: +item.count } },
+                },
+            };
+        });
+        console.log(update);
+        const updated=await Product.bulkWrite(update,{});
+        res.json({message:"success"});
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+const getOrders=asyncHandler(async(req,res)=>{
+    const {_id}=req.user;
+    try {
+        const orders=await Order.findOne({orderby:_id}).populate('products.product').exec();
+        res.json(orders);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+const updateOrderStatus=asyncHandler(async(req,res)=>{
+    const {id}=req.params;
+    const {status}=req.body;
+    try {
+        const updateStatus=await Order.findByIdAndUpdate(id,{
+            payamentIntent:{
+                status:status
+            },
+            orderStatus:status
+        },{new:true});
+        res.json(updateStatus);
+    } catch (error) {
+        throw new Error(error);
+    }
 })
 
 
@@ -343,6 +414,9 @@ module.exports = {
     loginAdmin,
     addToCart,
     veiwUserCart,
-    applyCoupen
+    applyCoupen,
+    createOrder,
+    getOrders,
+    updateOrderStatus
 }
 
