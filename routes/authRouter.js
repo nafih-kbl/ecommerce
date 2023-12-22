@@ -15,7 +15,9 @@ var {
     forgetPasswordToken,
     resetPassword,
     loginAdmin,
-    addToCart
+    addToCart,
+    veiwUserCart,
+    applyCoupen
 }=require('../controller/userCtrl');
 const { authMiddleware,isAdmin } = require('../middleware/authMiddleware');
 /* GET users listing. */
@@ -25,6 +27,8 @@ router.post('/admin-login',loginAdmin);
 router.put('/password',authMiddleware,updatePassword);
 router.post('/forget-password',forgetPasswordToken);
 router.post('/add-to-cart',authMiddleware,addToCart);
+router.get('/user-cart',authMiddleware,veiwUserCart);
+router.put('/apply-coupen',authMiddleware,applyCoupen);
 router.put('/resetPassword/:token',resetPassword);
 router.get('/getAllUser',authMiddleware,isAdmin,getAllUser);
 router.get('/getUser/:id',authMiddleware,getSingleUSer);

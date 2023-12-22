@@ -111,7 +111,7 @@ const getAllUser = asyncHandler(async (req, res) => {
 const getSingleUSer = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
-        validateMongodbId(id)
+        validateMongodbId(id);
         const user = await User.findById(id)
         res.json(user)
     } catch (error) {
@@ -302,7 +302,28 @@ const addToCart=asyncHandler(async(req,res)=>{
         throw new Error(error);
     }
 });
-
+const veiwUserCart=asyncHandler(async(req,res)=>{
+    const{_id}=req.user;
+    try {
+        const userCart=await Cart.findOne({orderby:_id}).populate('products.product');
+        res.json(userCart);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+const applyCoupen=asyncHandler(async(req,res)=>{
+    const{_id}=req.user;
+    const {coupen}=req.body;
+    try {
+        const findCoupen=await Discount.findOne({name:coupen});
+        const {orderby,cartTotal}=await Cart.findOne({orderby:_id});
+        const applyCoupen= (cartTotal-((cartTotal*findCoupen.discount)/100));
+        const applyDiscount=await Cart.findOneAndUpdate({orderby:orderby},{totalAfterDiscount:applyCoupen},{new:true});
+        res.json(applyDiscount);
+    } catch (error) {
+        throw new Error(error);
+    }
+})
 
 
 module.exports = {
@@ -320,6 +341,8 @@ module.exports = {
     forgetPasswordToken,
     resetPassword,
     loginAdmin,
-    addToCart
+    addToCart,
+    veiwUserCart,
+    applyCoupen
 }
 
